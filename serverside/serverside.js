@@ -1,18 +1,25 @@
 var mysql = require('mysql');
 var express    = require("express");
-var app = express();
+var CONSTANTS = require('./gitignoreconstants');
+var fs = require('fs');
+var https = require('https');
 
+var privateKey  = fs.readFileSync('./sslcert/server.key', 'utf8');
+var certificate = fs.readFileSync('./sslcert/server.cert', 'utf8');
+
+var credentials = {key: privateKey, cert: certificate};
 
 var dbManager = function(){
 	this.con = null;
 	this.app = null;
+	this.httpsServer = null;
 };
 
 var CreateNewConnection = function(dbName) {
 	return mysql.createConnection({
 	  host: "localhost",
-	  user: "root",
-	  password: "",
+	  user: CONSTANTS.USERNAME,
+	  password: CONSTANTS.PASSWORD,
 	  database: dbName
 	});
 }
@@ -79,13 +86,16 @@ dbManager.prototype.initialise = function(dbName) {
 			});
 	})
 
-	this.app.listen(3000);
+	this.httpsServer = https.createServer(credentials, this.app);
+	this.httpsServer.listen(8443);
 }
 
 dbManager.prototype.close = function() {
 	this.con.end();
+	this.httpsServer.close();
 	this.con = null;
 	this.app = null;
+	this.httpsServer = null;
 }
 
 module.exports.dbManager = dbManager;

@@ -1,1 +1,3 @@
-serverside/node_modules
+serverside/test/node_modules/
+serverside/node_modules/
+serverside/gitignoreconstants.js

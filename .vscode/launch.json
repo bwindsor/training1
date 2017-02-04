@@ -36,7 +36,7 @@
             "type": "chrome",
             "request": "launch",
             "name": "Client",
-            "url": "http://localhost:3000",
+            "url": "http://localhost:8443",
             "webRoot": "${workspaceRoot}/public",
             "sourceMaps": true
         },
