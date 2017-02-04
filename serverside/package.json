@@ -1,0 +1,27 @@
+{
+  "name": "training1",
+  "version": "1.0.0",
+  "description": "Experimenting with node",
+  "main": "index.js",
+  "scripts": {
+    "test": "test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/bwindsor/training1.git"
+  },
+  "keywords": [
+    "mysql"
+  ],
+  "author": "Ben Windsor",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bwindsor/training1/issues"
+  },
+  "homepage": "https://github.com/bwindsor/training1#readme",
+  "dependencies": {
+    "express": "^4.14.1",
+    "mysql": "^2.13.0",
+    "request": "^2.79.0"
+  }
+}
