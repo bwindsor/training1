@@ -5,6 +5,11 @@ var testutils = require('./testutils');
 
 var dbm = new s.dbManager;
 
+var portNumber = 443;
+if (process.env.PORT_NUMBER) {
+    portNumber = process.env.PORT_NUMBER;
+}
+
 describe('request age response', function() {
     before(function(done) {
         testutils.CreateSampleDB(done);
@@ -12,7 +17,7 @@ describe('request age response', function() {
     });
 
     it('should return the correct age', function(done) {
-        request('http://localhost:3000/age/24', function(err, response, body) {
+        request('https://localhost:' + portNumber + '/age/24', function(err, response, body) {
             if (err) {
                 done(err);
             } else {

@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/bwindsor/training1#readme",
   "dependencies": {
+    "body-parser": "^1.16.0",
     "express": "^4.14.1",
     "https": "^1.0.0",
     "mysql": "^2.13.0",

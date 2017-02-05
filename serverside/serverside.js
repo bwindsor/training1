@@ -1,14 +1,19 @@
 var mysql = require('mysql');
 var express    = require("express");
+// This module will not be pushed to github online, it
+// contains the mysql database username/password
 var CONSTANTS = require('./gitignoreconstants');
 var fs = require('fs');
 var https = require('https');
+var bodyParser = require('body-parser');
 
+// Create SSL settings for HTTPS
 var privateKey  = fs.readFileSync('./sslcert/server.key', 'utf8');
 var certificate = fs.readFileSync('./sslcert/server.cert', 'utf8');
-
 var credentials = {key: privateKey, cert: certificate};
 
+// dbManager manages communication between the client
+// and the mysql database
 var dbManager = function(){
 	this.con = null;
 	this.app = null;
@@ -40,6 +45,10 @@ dbManager.prototype.initialise = function(dbName) {
 
 	// Make sure app serves static files
 	this.app.use(express.static('../public'));
+
+	// Add ability for express to parse form submitted
+	// data into the req.body field
+	this.app.use(bodyParser.urlencoded({extended: true}));
 
 	var connection = this.con;
 	this.app.get("/age/:age", function(req, res) {
@@ -85,9 +94,20 @@ dbManager.prototype.initialise = function(dbName) {
 				}
 			});
 	})
+	this.app.post("/login", function(req, res) {
+		console.log(req.body);
+		res.send(req.body);
+	})
 
 	this.httpsServer = https.createServer(credentials, this.app);
-	this.httpsServer.listen(8443);
+	var portNumber = 443;
+	if (process.env.PORT_NUMBER) {
+		var tmp = parseInt(process.env.PORT_NUMBER);
+		if (!Number.isNaN(tmp)) {
+			portNumber = tmp;
+		}
+	}
+	this.httpsServer.listen(portNumber);
 }
 
 dbManager.prototype.close = function() {

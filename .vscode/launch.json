@@ -9,22 +9,29 @@
 			"name": "Server test",
 			// Type of configuration. Possible values: "node", "mono".
 			"type": "node",
+            "request": "launch",
 			// Workspace relative or absolute path to the program.
-			"program": "a",
+			"program": "/usr/local/bin/mocha",
 			// Automatically stop program after launch.
 			"stopOnEntry": false,
 			// Command line arguments passed to the program.
-			"args": ["/usr/local/bin/mocha", "./serverside/test/tests.js"],
+			"args": [],
 			// Workspace relative or absolute path to the working directory of the program being debugged. Default is the current workspace.
-			"cwd": "./serverside/test",
-            "runtimeExecutable": null
+			"cwd": "${workspaceRoot}/serverside",
+            "runtimeExecutable": null,
+            "env": {
+                "PORT_NUMBER": "8443"
+            }
         },
         {
             "type": "node",
             "request": "launch",
             "name": "Server",
             "program": "${workspaceRoot}/serverside/index.js",
-            "cwd": "${workspaceRoot}/serverside"
+            "cwd": "${workspaceRoot}/serverside",
+            "env": {
+                "PORT_NUMBER": "8443"
+            }
         },
         {
             "type": "node",
