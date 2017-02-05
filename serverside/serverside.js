@@ -1,11 +1,18 @@
 var mysql = require('mysql');
 var express    = require("express");
+var users = require('./users');
+var flash = require('connect-flash');
+var session = require('express-session');
 // This module will not be pushed to github online, it
 // contains the mysql database username/password
 var CONSTANTS = require('./gitignoreconstants');
 var fs = require('fs');
 var https = require('https');
 var bodyParser = require('body-parser');
+var cookieParser = require('cookie-parser');
+// Set up password stuff
+var passport = require('passport');
+var LocalStrategy = require('passport-local').Strategy;
 
 // Create SSL settings for HTTPS
 var privateKey  = fs.readFileSync('./sslcert/server.key', 'utf8');
@@ -50,7 +57,56 @@ dbManager.prototype.initialise = function(dbName) {
 	// data into the req.body field
 	this.app.use(bodyParser.urlencoded({extended: true}));
 
+	this.app.use(bodyParser.json());
+
+	this.app.use(cookieParser());
+
+	// Add session authenticate
 	var connection = this.con;
+	passport.use('local', new LocalStrategy(
+		function(username, password, done) {
+			users.check(connection, username, password, done);
+		}
+	));
+	passport.serializeUser(function(user, done) {
+	done(null, user);
+	});
+	passport.deserializeUser(function(id, done) {
+	done(null, id);
+	});
+
+	// this.app.set('trust proxy', 1) // trust first proxy
+	this.app.use(session({
+		secret: 'i am not a camel',
+		resave: false,
+		saveUninitialized: true,
+		cookie: { secure: true }
+	}));
+	this.app.use(flash());
+	this.app.use(passport.initialize());
+	this.app.use(passport.session());
+
+	// To access the secret page, the user must be logged in. If they
+	// are logged in, it will welcome them with their username
+	this.app.get("/secret", function(req, res) {
+		if (req.user) {
+			res.send('welcome ' + req.user + '. You are on the secret page.');
+		} else {
+			res.redirect('/login.html');
+		}
+	});
+	// When the user tries to go to login, if they are already
+	// logged in they get taken to the secret page
+	this.app.get("/login", function(req, res) {
+		if (req.user) {
+			res.redirect('/secret');
+		} else {
+			var m = req.flash('error');
+			// TODO - renger login page differently
+			// depending on if which login error m contains
+			res.redirect('/login.html');
+		}
+	})
 	this.app.get("/age/:age", function(req, res) {
 		connection.query("SELECT * FROM people WHERE age = " + req.params['age'] + ";", function(err, rows){
 			if (err) {
@@ -94,10 +150,11 @@ dbManager.prototype.initialise = function(dbName) {
 				}
 			});
 	})
-	this.app.post("/login", function(req, res) {
-		console.log(req.body);
-		res.send(req.body);
-	})
+	this.app.post("/login",
+  		passport.authenticate('local', { successRedirect: '/',
+                                   		 failureRedirect: '/login',
+										 failureFlash: true })
+	)
 
 	this.httpsServer = https.createServer(credentials, this.app);
 	var portNumber = 443;
