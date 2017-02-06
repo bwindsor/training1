@@ -114,55 +114,15 @@ dbManager.prototype.initialise = function(dbName) {
 			res.render('login.pug', {message: msg});
 		}
 	})
-	this.app.get("/age/:age", function(req, res) {
-		connection.query("SELECT * FROM people WHERE age = ?;", [req.params['age']], function(err, rows){
-			if (err) {
-				console.log('Error with query: ' + err);
-				res.send(err);
-			} else {
-				console.log('Query complete, data:');
-				console.log(rows);
-				res.send(rows);
-			}
-		});
-	});
-	this.app.get("/id/:id/age", function(req, res) {
-		connection.query('SELECT age FROM people WHERE id=?;', [req.params['id']], function(err, rows) {
-			if (err) {
-				res.send(err);
-			} else if (rows.length == 0) {
-				res.send('ID not found');
-			} else {
-				res.send(rows[0]['age'].toString());
-			}
-		})
-	})
-	this.app.put("/id/:id/age/:age", function(req, res) {
-		connection.query('UPDATE people SET age=' + req.params['age'] + ' WHERE id=' + req.params['id'] + ';', function(err, rows) {
-			if (err) {
-				res.send(err);
-			} else {
-				res.send(rows);
-			}
-		})
-	})
-	this.app.put("/person/forename/:forename/surname/:surname/age/:age", function(req, res) {
-		var q = "INSERT INTO people (id, forename, surname, age) VALUES \
-				(NULL, ?, ?, ?);";
-		var p = [req.params['forename'], req.params['surname'], req.params['age']];
-		connection.query(q, p, function(err, newRow) {
-				if (err) {
-					res.send(err);
-				} else {
-					res.send(newRow);
-				}
-			});
-	})
+
 	this.app.post("/login",
   		passport.authenticate('local', { successRedirect: '/',
                                    		 failureRedirect: '/login',
 										 failureFlash: true })
 	)
+
+	// Add API to database
+	require('./api').initialise(this.app, connection);
 
 	this.httpsServer = https.createServer(credentials, this.app);
 	var portNumber = 443;
