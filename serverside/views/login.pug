@@ -1,0 +1,9 @@
+html
+body
+h1(style="color:red")= message
+form(action="/login" method="POST")
+    label(for="username") Username
+    input(name="username" type="text")
+    label(for="password") Password
+    input(name="password" type="password")
+    input(type="submit" value="Log in")

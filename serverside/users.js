@@ -5,8 +5,8 @@ module.exports.add = function(dbConnection, username, password, done) {
     bcrypt.hash(password, saltRounds, function(err, hash) {
         // Store hash in password DB. 
         if (err) { return done(err); }
-        dbConnection.query("INSERT INTO users (username, password) VALUES \
-                ('" + username + "', '" + hash + "')", function(err, res) {
+        dbConnection.query("INSERT INTO users (username, password) VALUES (?, ?)", 
+                                [username, hash], function(err, res) {
                     if (err) {
                         return done(err);
                     }
@@ -16,7 +16,8 @@ module.exports.add = function(dbConnection, username, password, done) {
 }
 
 module.exports.check = function(dbConnection, username, password, done) {
-    dbConnection.query("SELECT * FROM users WHERE username='" + username + "'", function(err, res) {
+    // Calling queries like this prevents sql injection into form
+    dbConnection.query("SELECT * FROM users WHERE username=?", [username], function(err, res) {
             if (err) {
                 return done(err);
             } else if (res.length==0) {

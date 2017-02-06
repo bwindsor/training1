@@ -50,6 +50,9 @@ dbManager.prototype.initialise = function(dbName) {
 
 	this.app = express();
 
+	this.app.set('view engine', 'pug');
+	this.app.set('views', './views');
+
 	// Make sure app serves static files
 	this.app.use(express.static('../public'));
 
@@ -92,7 +95,8 @@ dbManager.prototype.initialise = function(dbName) {
 		if (req.user) {
 			res.send('welcome ' + req.user + '. You are on the secret page.');
 		} else {
-			res.redirect('/login.html');
+			req.flash('error', 'You need to be logged in to view that page.');
+			res.redirect('/login');
 		}
 	});
 	// When the user tries to go to login, if they are already
@@ -102,13 +106,16 @@ dbManager.prototype.initialise = function(dbName) {
 			res.redirect('/secret');
 		} else {
 			var m = req.flash('error');
-			// TODO - renger login page differently
-			// depending on if which login error m contains
-			res.redirect('/login.html');
+			var msg = "";
+			// Render login page depending on error, if any
+			if (m.length) {
+				msg = m[0];
+			}
+			res.render('login.pug', {message: msg});
 		}
 	})
 	this.app.get("/age/:age", function(req, res) {
-		connection.query("SELECT * FROM people WHERE age = " + req.params['age'] + ";", function(err, rows){
+		connection.query("SELECT * FROM people WHERE age = ?;", [req.params['age']], function(err, rows){
 			if (err) {
 				console.log('Error with query: ' + err);
 				res.send(err);
@@ -120,7 +127,7 @@ dbManager.prototype.initialise = function(dbName) {
 		});
 	});
 	this.app.get("/id/:id/age", function(req, res) {
-		connection.query('SELECT age FROM people WHERE id=' + req.params['id'] + ';', function(err, rows) {
+		connection.query('SELECT age FROM people WHERE id=?;', [req.params['id']], function(err, rows) {
 			if (err) {
 				res.send(err);
 			} else if (rows.length == 0) {
@@ -140,9 +147,10 @@ dbManager.prototype.initialise = function(dbName) {
 		})
 	})
 	this.app.put("/person/forename/:forename/surname/:surname/age/:age", function(req, res) {
-		q = "INSERT INTO people (id, forename, surname, age) VALUES (NULL, '" + req.params['forename'] + 
-			"','" + req.params['surname'] + "'," + req.params['age'] + ");"
-		connection.query(q, function(err, newRow) {
+		var q = "INSERT INTO people (id, forename, surname, age) VALUES \
+				(NULL, ?, ?, ?);";
+		var p = [req.params['forename'], req.params['surname'], req.params['age']];
+		connection.query(q, p, function(err, newRow) {
 				if (err) {
 					res.send(err);
 				} else {
